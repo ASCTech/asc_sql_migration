@@ -1,0 +1,5 @@
+; $Id$
+name = ASC SQL Migration
+description = A module that allows administrators in ASC to run queries against the database to check for links related to the development, staging, and production environment that have been entered incorrectly.
+core = 6.x
+package = Arts and Sciences at The Ohio State University Modules

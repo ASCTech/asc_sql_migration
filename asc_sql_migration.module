@@ -1,0 +1,156 @@
+<?php
+// $Id$
+/**
+* @file
+* A module that allows administrators in ASC to run queries against the database to check for links related to the development, staging, and production environment that have been entered incorrectly.
+*/
+
+/**
+ * Display help and module information
+ * @param path which path of the site we're displaying help
+ * @param arg array that holds the current path as would be returned from arg() function
+ * @return help text for the path
+ */
+function asc_sql_migration_help($path, $arg) {
+  $output = '';  //declare your output variable
+  switch ($path) {
+    case "admin/help#asc_sql_migration":
+      $output = '<p>'.  t("A module that allows administrators in ASC to run queries against the database to check for links related to the development, staging, and production environment that have been entered incorrectly.") .'</p>';
+      break;
+  }
+  return $output;
+} // function asc_sql_migration_help
+
+/**
+ * Valid permissions for this module
+ * @return array An array of valid permissions for the onthisdate module
+ */
+function asc_sql_migration_perm() {
+  return array('access asc_sql_migration content', 'administer asc_sql_migration');
+} // function asc_sql_migration_perm()
+
+/**
+*
+* Implementation of hook_admin().
+*
+* Module settings page
+*/
+function asc_sql_migration_admin() {
+
+  // Declare the form
+  $form = array();
+
+  $form['asc_sql_migration_site_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Site Name'),
+    '#default_value' => variable_get("asc_sql_migration_site_name", 'asctech'),
+    '#size' => 60,
+    '#description' => t("The name of the site we are querying."),
+    '#required' => TRUE,
+  );
+
+  $form['asc_sql_migration_prod_server_root'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Production Server Root'),
+    '#default_value' => variable_get("asc_sql_migration_prod_server_root", 'drupal.asc.ohio-state.edu'),
+    '#size' => 60,
+    '#description' => t("The root of the ASC production server."),
+    '#required' => TRUE,
+  );
+
+  $form['asc_sql_migration_dev_server_root'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Development Server Root'),
+    '#default_value' => variable_get("asc_sql_migration_dev_server_root", 'drupal-d.asc.ohio-state.edu'),
+    '#size' => 60,
+    '#description' => t("The root of the ASC development server."),
+    '#required' => TRUE,
+  );
+
+  $form['asc_sql_migration_prod_sym_link_ext'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Production Server Symbolic Link Extension'),
+    '#default_value' => variable_get("asc_sql_migration_prod_sym_link_ext", '-s.asc.ohio-state.edu'),
+    '#size' => 60,
+    '#description' => t("The extension of the ASC production server."),
+    '#required' => TRUE,
+  );
+
+  $form['asc_sql_migration_dev_sym_link_ext'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Development Server Symbolic Link Extension'),
+    '#default_value' => variable_get("asc_sql_migration_dev_sym_link_ext", '-d.asc.ohio-state.edu'),
+    '#size' => 60,
+    '#description' => t("The extension of the ASC development server."),
+    '#required' => TRUE,
+  );
+
+  // Return the form to system settings
+  return system_settings_form($form);
+} // function asc_sql_migration_admin()
+
+/**
+*
+* Implementation of hook_menu().
+*
+* Menu items for module
+*/
+function asc_sql_migration_menu() {
+
+  // Declare the menu items variable
+  $items = array();
+
+  // Define the admin settings menu item
+  $items['admin/settings/asc_sql_migration'] = array(
+    'title' => 'ASC SQL Migration Administration',
+    'description' => 'Modify the settings for ASC SQL Migration.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('asc_sql_migration_admin'),
+    'access arguments' => array('administer asc sql migration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  // Return the menu items
+  return $items;
+} // function asc_sql_migration_menu()
+
+/**
+ * Implementation of hook_block().
+ * @param string $op one of "list", "view", "save" and "configure"
+ * @param integer $delta code to identify the block
+ * @param array $edit only for "save" operation
+ */
+function asc_sql_migration_block($op='list', $delta=0) {
+  // set up the block
+  $block = array();
+
+  if ($op == "list") {
+    // Generate listing of blocks from this module, for the admin/block page
+
+    $block[0]["info"] = t('ASC SQL Migration');
+  }
+  else if ($op == 'view') {
+
+    // Add the stylesheet
+    drupal_add_css(drupal_get_path('module', 'asc_sql_migration') .'/css/asc_sql_migration.css');
+    // Add the javascript
+    drupal_add_js(drupal_get_path('module', 'asc_sql_migration') .'/js/asc_sql_migration.js');
+
+    // Generate our block content
+
+    // content variable that will be returned for display
+    $block_content = '';
+
+    // Include block functions
+    include(drupal_get_path('module', 'asc_sql_migration') . '/include/asc_sql_migration.main.inc');
+    $block_content .= asc_sql_migration_main();
+
+    // Fill in the subject of our block
+    $block['subject'] = '';
+    // set up the block
+    $block['content'] = $block_content;
+  }
+
+  // Return block content
+  return $block;
+}  // function asc_sql_migration_block($op='list', $delta=0)
